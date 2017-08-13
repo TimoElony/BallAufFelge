@@ -32,7 +32,7 @@ mF = 3.3; % Masse Ersatzscheibe(bis Trägheitsmoment bekannt ist)
 % Dummyträgheitsmomente für vereinfachte Modelle
 JB = 2/3*mB*rBreal^2; % Für dünnwandige Hohlkugel(Matroids)
 % JF = 1/2*mF*rF^2; % Für Zylinderförmige Felge
-
+T_eps = 1;
 % JF=0.1; 
 
   for m=1:10
@@ -73,11 +73,13 @@ d3 = mB*g*(JF*rB^2+JB*rF^2)/((rF+rB)*(JF*mB*rB^2+JB*mB*rF^2+JB*JF)); %a1 bei VL
 
 %% Linearisierung für kleine Auslenkung um alpha=0
 
-A= [0 1 0 0; d3 0 0 0;0 0 0 1; c3 0 0 0];   %Übertragungsmatrix
+A= [0 1 0 0 0; d3 0 0 0 0;0 0 0 1 0; c3 0 0 0 0; 0 0 0 0 -1/T_eps];   %Übertragungsmatrix
 
-B= [0 ; d1; 0 ; c1];   % Eingagsmatrix
+B= [0 ; d1; 0 ; c1; 1/T_eps];   % Eingangsmatrix mit Eingangsstörung
 
-C= [1 0 0 0; 0 0 1 0]; %Ausgangsmatrix für Werte alpha, phi(!beob!), phipunkt
+Bz = [0; 0; 0; 0; 0]; % Störeingangsmatrix
+
+C= [1 0 0 0 0; 0 0 1 0 0; 0 0 0 0 1]; %Ausgangsmatrix für Werte alpha, phi(!beob!), phipunkt
 
 D= 0;
 
@@ -104,13 +106,13 @@ Tbinv=Tb^-1;
 
 
 %% Trafo RNF
-Su=[B A*B A^2*B A^3*B];
+Su=[B A*B A^2*B A^3*B A^4*B];
 
 Suinv= inv(Su);
 
 Sun=Suinv(end,:);
 
-Tr= ([Sun; Sun*A; Sun*A^2; Sun*A^3]);
+Tr= ([Sun; Sun*A; Sun*A^2; Sun*A^3; Sun*A^4]);
 
 Trinv=inv(Tr);
 
@@ -147,13 +149,14 @@ end
 
 %Polynomvorgabe für Beobachter Binomial
 
-p0b = wgB^4;
-p1b = 4*wgB^3;
-p2b = 6*wgB^2;
-p3b = 4*wgB;
-p4b = 1;
+p0b = wgB^5;
+p1b = 5*wgB^4;
+p2b = 10*wgB^3;
+p3b = 10*wgB^2;
+p4b = 5*wgB;
+p5b = 1;
 
-Pb = roots([p4b,p3b,p2b,p1b,p0b]);
+Pb = roots([p5b,p4b,p3b,p2b,p1b,p0b]);
 
 % Beobachter Rückführmatrix
 
@@ -180,11 +183,12 @@ A_cl = AM;
 % p4r = 1;
 %Polynomvorgabe für Regler Binomial
 
-p0r = wgR^4;
-p1r = 4*wgR^3;
-p2r = 6*wgR^2;
-p3r = 4*wgR;
-p4r = 1;
+p0r = wgR^5;
+p1r = 5*wgR^4;
+p2r = 10*wgR^3;
+p3r = 10*wgR^2;
+p4r = 5*wgR;
+p5r = 1;
 
 r(5)=1./Brr(end);
 
@@ -200,7 +204,7 @@ r4=p3r/p4r * r(5)-r(4);
 
 R = [r1 r2 r3 r4];
 
-Pr = roots([p4r,p3r,p2r,p1r,p0r]);
+Pr = roots([p5r,p4r,p3r,p2r,p1r,p0r]);
 R = place(A,B,Pr);
 Ar_cl = A-B*R;
 
