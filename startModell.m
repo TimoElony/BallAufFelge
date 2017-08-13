@@ -205,7 +205,7 @@ R = place(A,B,Pr);
 Ar_cl = A-B*R;
 
 
-   sim modell_Timo_kompatibel
+   sim modell
    
    
    MF_max(m)=max(abs(simout.get.Data));
