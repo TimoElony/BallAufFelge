@@ -32,7 +32,7 @@ mF = 3.3; % Masse Ersatzscheibe(bis Trägheitsmoment bekannt ist)
 % Dummyträgheitsmomente für vereinfachte Modelle
 JB = 2/3*mB*rBreal^2; % Für dünnwandige Hohlkugel(Matroids)
 % JF = 1/2*mF*rF^2; % Für Zylinderförmige Felge
-T_eps = 1;
+T_eps = 0.001;
 % JF=0.1; 
 
   for m=1:10
@@ -72,27 +72,37 @@ d3 = mB*g*(JF*rB^2+JB*rF^2)/((rF+rB)*(JF*mB*rB^2+JB*mB*rF^2+JB*JF)); %a1 bei VL
 %alpha_dd = d1*MF + d2*F + d3*sin(alpha);
 
 %% Linearisierung für kleine Auslenkung um alpha=0
+% x-Vektor ursprünglicher Aufbau: [alpha;alpha_punkt;phi;phi_punkt]
 
 A= [0 1 0 0 0; d3 0 0 0 0;0 0 0 1 0; c3 0 0 0 0; 0 0 0 0 -1/T_eps];   %Übertragungsmatrix
 
 B= [0 ; d1; 0 ; c1; 1/T_eps];   % Eingangsmatrix mit Eingangsstörung
 
-Bz = [0; 0; 0; 0; 0]; % Störeingangsmatrix
+Bz = [1; 0; 0; 0; 0]; % Störeingangsmatrix für Störung am Ausgang alpha
 
-C= [1 0 0 0 0; 0 0 1 0 0; 0 0 0 0 1]; %Ausgangsmatrix für Werte alpha, phi(!beob!), phipunkt
+C= [1 0 0 0 0]; %Ausgangsmatrix für alpha
 
 D= 0;
 
 %Steuerbarkeit, Beobachtbarkeit
+
+%Systemmatrix für Zustandsbeobachter mit Störgrößenbeobachter
+%Annahme: Sprungförmige Störung
+Az = [0]; 
+Cz = [1];
+As = [A Bz*Cz;0 0 0 0 0 Az];
+Bs = [B;0];
+Cs = [C 0];
 strbr = rank(ctrb(A,B));
-bbtbr = rank(obsv(A,C));
+bbtbr = rank(obsv(As,Cs));
 
 
 
 %% Trafo in BNF 
-
-SYS=ss(A,B,C,D);
-[A,B,C,D]=ssdata(SYS);
+By = [ Cs ; Cs*As ; Cs*(As^2) ; Cs*(As^3) ; Cs*(As^4); Cs*(As^5)];
+rank(By)
+SYS=ss(As,Bs,Cs,D);
+%[A,B,C,D]=ssdata(SYS); %War das ein Fehler???
 [sysB,Tb]=canon(SYS,'companion');
 [Ab,Bb,Cb,Db]=ssdata(sysB);
 Tbinv=Tb^-1;
@@ -202,12 +212,14 @@ r2=p1r/p4r * r(5)-r(2);
 r3=p2r/p4r * r(5)-r(3);
 r4=p3r/p4r * r(5)-r(4);
 
-R = [r1 r2 r3 r4];
+%R = [r1 r2 r3 r4];
 
 Pr = roots([p5r,p4r,p3r,p2r,p1r,p0r]);
 R = place(A,B,Pr);
 Ar_cl = A-B*R;
 
+%Vorfilter
+qz = 0; %deaktivierte SG; TODO alternative Berechnungsmöglichkeit ohne RNF suchen
 
    sim modell
    
