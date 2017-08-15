@@ -32,7 +32,7 @@ mF = 3.3; % Masse Ersatzscheibe(bis Trägheitsmoment bekannt ist)
 % Dummyträgheitsmomente für vereinfachte Modelle
 JB = 2/3*mB*rBreal^2; % Für dünnwandige Hohlkugel(Matroids)
 % JF = 1/2*mF*rF^2; % Für Zylinderförmige Felge
-T_eps = 0.001;
+T_summe = 0.01;
 % JF=0.1; 
 
   for m=1:10
@@ -74,11 +74,15 @@ d3 = mB*g*(JF*rB^2+JB*rF^2)/((rF+rB)*(JF*mB*rB^2+JB*mB*rF^2+JB*JF)); %a1 bei VL
 %% Linearisierung für kleine Auslenkung um alpha=0
 % x-Vektor ursprünglicher Aufbau: [alpha;alpha_punkt;phi;phi_punkt]
 
-A= [0 1 0 0 0; d3 0 0 0 0;0 0 0 1 0; c3 0 0 0 0; 0 0 0 0 -1/T_eps];   %Übertragungsmatrix
+A= [0 1 0 0 0;
+   d3 0 0 0 0;
+    0 0 0 1 0;
+   c3 0 0 0 0;
+    0 0 0 0 -1/T_summe];   %Übertragungsmatrix
 
-B= [0 ; d1; 0 ; c1; 1/T_eps];   % Eingangsmatrix mit Eingangsstörung
+B= [0 ; d1; 0 ; c1; 1/T_summe];   % Eingangsmatrix mit Eingangsstörung
 
-Bz = [1; 0; 0; 0; 0]; % Störeingangsmatrix für Störung am Ausgang alpha
+Bz = [0; 0; 0; 1/JF; 0]; % Störeingangsmatrix für Störung des Momentes mit Wirkung auf phi_punkt
 
 C= [1 0 0 0 0]; %Ausgangsmatrix für alpha
 
