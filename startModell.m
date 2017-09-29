@@ -204,6 +204,18 @@ Pr = roots([p4r,p3r,p2r,p1r,p0r]);
 R = place(A,B,Pr);
 Ar_cl = A-B*R;
 
+%% optimaler Regler + Vorfilter
+Q_ctrl = diag([   1, ...
+                 1, ...
+                 0.1, ...
+                   1]);
+R_ctrl = 1;
+
+% optimaler Regler
+R = lqr(A,B,Q_ctrl,R_ctrl);
+
+% Vorfilter (stationäres Führungsgrößenfilter):
+M   = 1 / ( (C)/(B*R-A)*B );
 
    sim modell
    
