@@ -162,48 +162,6 @@ Rb= RbTr';
 AM = Ab-Rb*Cb;
 A_cl = AM;
 
-%% Regler R
-
-%Polynomvorgabe für Regler nach Butterworth 4% Verfahren 
-% p0r = wgR^4;
-% p1r = (3.02)*wgR^3;
-% p2r = (4.36)*wgR^2;
-% p3r = (3.02)*wgR;
-% p4r = 1;
-
-%Polynomvorgabe für Regler nach Butterworth
-
-% p0r = wgR^4;
-% p1r = sqrt(4+2*sqrt(2))*wgR^3;
-% p2r = (2+sqrt(2))*wgR^2;
-% p3r = sqrt(4+2*sqrt(2))*wgR;
-% p4r = 1;
-%Polynomvorgabe für Regler Binomial
-
-p0r = wgR^4;
-p1r = 4*wgR^3;
-p2r = 6*wgR^2;
-p3r = 4*wgR;
-p4r = 1;
-
-r(5)=1./Brr(end);
-
-for k=1:4
-   r(k)=-Arr(i,4).*r(5);
-end
-
-
-r1=p0r/p4r * r(5)-r(1);
-r2=p1r/p4r * r(5)-r(2);
-r3=p2r/p4r * r(5)-r(3);
-r4=p3r/p4r * r(5)-r(4);
-
-R = [r1 r2 r3 r4];
-
-Pr = roots([p4r,p3r,p2r,p1r,p0r]);
-R = place(A,B,Pr);
-Ar_cl = A-B*R;
-
 %% optimaler Regler + Vorfilter
 Q_ctrl = diag([   1, ...
                  1, ...
@@ -217,6 +175,7 @@ R = lqr(A,B,Q_ctrl,R_ctrl);
 % Vorfilter (stationäres Führungsgrößenfilter):
 M   = 1 / ( (C)/(B*R-A)*B );
 
+%% Simulation
    sim modell
    
    
