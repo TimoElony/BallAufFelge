@@ -16,10 +16,9 @@ syms Rq km iq iq_d uq Lq
 %Rücksubstitution
 F=0;
 MF=0;
-alpha_0 = 10/180 *pi;
-alpha_d= 0;      
-phiF = 0;
-phiF_d = 0;
+modellNull = [10/180*pi;0;0;0];
+% Beobachterstartpunkt
+beobachterNull = [0;0;0;0];
 Mmax = 1000000;
 Mmin = -1*Mmax;
 % physikalische und geometrische Parameter des Systems
@@ -46,9 +45,6 @@ JB = 2/3*mB*rBreal^2; % Für dünnwandige Hohlkugel(Matroids)
    
 Ta=1/50; % Abtastrate für alpha
 
-
-wgR = 5;
-wgB=  4*wgR;
 
 %% Koeffizienten der DGL aufgrund mechanischen Modells (siehe
 
@@ -85,95 +81,23 @@ D= 0;
 strbr = rank(ctrb(A,B));
 bbtbr = rank(obsv(A,C));
 
-
-
-%% Trafo in BNF 
-
-SYS=ss(A,B,C,D);
-[A,B,C,D]=ssdata(SYS);
-[sysB,Tb]=canon(SYS,'companion');
-[Ab,Bb,Cb,Db]=ssdata(sysB);
-Tbinv=Tb^-1;
-
-%% Fehlerhafte Trafo in RNF
-% sysR=ss(Ab',Cb',Bb',Db');
-% Ar=Ab';
-% Br=Bb';
-% Cr=Cb';
-
-
-
-%% Trafo RNF
-Su=[B A*B A^2*B A^3*B];
-
-Suinv= inv(Su);
-
-Sun=Suinv(end,:);
-
-Tr= ([Sun; Sun*A; Sun*A^2; Sun*A^3]);
-
-Trinv=inv(Tr);
-
-Arr=Tr*A*Trinv;
-Brr=Tr*B;
-Crr=C*Trinv;
-
-
-%%Koeffizienten auslesen
-
-
-a(5)=1./Brr(4);
-
-for i=1:4
-   a(i)=-Arr(4,i).*a(5);
-end
-
-
-%Polynomvorgabe für Beobachter nach 4% Verfahren
-
-% p0b = wgB^4;
-% p1b = (3.02)*wgB^3;
-% p2b = (4.36)*wgB^2;
-% p3b = (3.02)*wgB;
-% p4b = 1;
-
-%Polynomvorgabe für Beobachter nach Butterworth
-
-% p0b = wgB^4;
-% p1b = sqrt(4+2*sqrt(2))*wgB^3;
-% p2b = (2+sqrt(2))*wgB^2;
-% p3b = sqrt(4+2*sqrt(2))*wgB;
-% p4b = 1;
-
-%Polynomvorgabe für Beobachter Binomial
-
-p0b = wgB^4;
-p1b = 4*wgB^3;
-p2b = 6*wgB^2;
-p3b = 4*wgB;
-p4b = 1;
-
-Pb = roots([p4b,p3b,p2b,p1b,p0b]);
-
-% Beobachter Rückführmatrix
-
-RbTr = place(Ab',Cb',Pb);
-Rb= RbTr';
-AM = Ab-Rb*Cb;
-A_cl = AM;
+%% Beobachter optimal Rückführmatrix
+Q    = eye(4);
+R    = diag([10, 10]);
+L    = lqr(A',C',Q, R)';
 
 %% optimaler Regler + Vorfilter
 Q_ctrl = diag([   1, ...
-                 1, ...
                  0.1, ...
-                   1]);
+                 1, ...
+                   10]);
 R_ctrl = 1;
 
 % optimaler Regler
-R = lqr(A,B,Q_ctrl,R_ctrl);
+K = lqr(A,B,Q_ctrl,R_ctrl);
 
 % Vorfilter (stationäres Führungsgrößenfilter):
-M   = 1 / ( (C)/(B*R-A)*B );
+M   = 1 / ( (C)/(B*K-A)*B );
 
 %% Simulation
    sim modell
