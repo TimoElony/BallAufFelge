@@ -71,7 +71,7 @@ d3 = mB*g*(JF*rB^2+JB*rF^2)/((rF+rB)*(JF*mB*rB^2+JB*mB*rF^2+JB*JF)); %a1 bei VL
 
 A= [0 1 0 0; d3 0 0 0;0 0 0 1; c3 0 0 0];   %Übertragungsmatrix
 
-B= [0 ; d1; 0 ; c1];   % Eingagsmatrix
+B= [0 ; d1; 0 ; c1];   % Eingangsmatrix
 
 C= [1 0 0 0; 0 0 1 0]; %Ausgangsmatrix für Werte alpha, phi(!beob!), phipunkt
 
@@ -99,9 +99,13 @@ K = lqr(A,B,Q_ctrl,R_ctrl);
 % Vorfilter (stationäres Führungsgrößenfilter):
 M   = 1 / ( (C)/(B*K-A)*B );
 
+%% Kalman-Filter
+Rinv = inv(R);
+
+P0 = diag([100,100,1,1]);
+
 %% Simulation
-   sim modell
-   
+   sim modell_kalman  
    
    MF_max(m)=max(abs(simout.get.Data));
 
